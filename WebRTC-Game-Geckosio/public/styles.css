@@ -1,0 +1,109 @@
+/* 
+--text: #ebe5e7;
+--background: #060505;
+--primary: #c0a5b0;
+--secondary: #5c4c42;
+--accent: #de2173;
+
+--text: #f1edee;
+--background: #1a0e14;
+--primary: #DE2173;
+--secondary: #86204c;
+--accent: #e73c86;
+ */
+
+body {
+  font-family: 'Goldman', sans-serif;
+  font-weight: 400;
+  background-image: url('/img/prism.png');
+  color: #ffffff; /* Testo nero */
+  margin: 0;
+  padding: 0;
+}
+
+canvas {
+  /* width: 1280;
+  height: 720; */
+  width: 70%;
+
+  /* background-image: url('/img/dark-honeycomb.png'); */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: fixed;
+}
+
+.title {
+  margin: auto;
+  height: 30%;
+  text-align: center;
+}
+
+#leaderboard {
+  word-wrap: break-word;
+  width: 15%;
+  max-height: 80%;
+  background-color: #de2173;
+  border-radius: 5px;
+  padding: 0px;
+  box-shadow: 0 0 10px 5c4c42 (172, 68, 166, 0.5);
+  float: left; /* Posiziona a sinistra */
+  text-align: center;
+}
+
+#leaderboard h2 {
+  max-width: inherit;
+  text-align: center;
+  font-weight: bold;
+  color: #6d133a;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#usernameId {
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: #475569;
+  color: #cbd5e1;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Centra i giocatori verticalmente */
+}
+
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.player {
+  word-wrap: break-word;
+  max-height: inherit;
+  display: inline-block;
+  color: #6d133a;
+  padding: 4px;
+  border-radius: 5px;
+}
+
+.score {
+  color: #6d133a;
+  font-family: 'Courier New', monospace;
+  padding: 4px;
+  border-radius: 5px;
+}

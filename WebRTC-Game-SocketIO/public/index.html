@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css" />
+    <body>
+      <div class="container">
+        <div class="title">
+          <img src="/img/title.png" class="title" />
+        </div>
+        <canvas></canvas>
+        <div id="leaderboard">
+          <h2>Leaderboard</h2>
+          <span class="player" id="playerLabels"></span>
+        </div>
+      </div>
+      <!-- username input -->
+      <div class="login">
+        <form id="usernameForm">
+          <div>
+            <input
+              id="usernameId"
+              type="text"
+              placeholder="Username"
+              maxlength="15"
+            />
+          </div>
+          <div style="text-align: center; margin-top: 8px">
+            <button
+              style="
+                padding: 8px 20px;
+                border-radius: 100px;
+                border: none;
+                background-image: linear-gradient(
+                  to right,
+                  #de2173,
+                  rgb(59, 130, 246)
+                );
+                color: white;
+                cursor: pointer;
+              "
+            >
+              Start!
+            </button>
+          </div>
+        </form>
+      </div>
+      <!-- username input end -->
+
+      <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
+        integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+      ></script>
+      <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+      <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.js"
+        integrity="sha512-a6vRQ4neE3Zif4GOxcVKoJ8SLItSads2p9h4o+0A9tv6vqHnUQkMrZiBCEvCZTiXNX+Jm8fywEk4vduCBoMemg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+      ></script>
+      <script src="./js/classes/Player.js"></script>
+      <script src="./js/classes/Wall.js"></script>
+      <script src="./js/index.js"></script>
+    </body>
+  </head>
+</html>

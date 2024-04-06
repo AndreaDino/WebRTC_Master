@@ -1,0 +1,19 @@
+bug fix: 
+
+
+grafica:-migliorare un po' l'interfaccia(loghi, cazzate) ->aggiustare titolo
+	-leaderboard al centro ok
+	-centrare tutto ok
+	
+
+refactoring:
+	-funzioni
+	-pulizia generale
+	-commenti
+
+IMPORTANTE:
+
+-Implementazione con GeckosIO ok
+-Test con delay e packet loss HAI VOGLIA
+-geckosio con reliablity ok 
+-input validation  ok
