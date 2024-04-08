@@ -259,7 +259,6 @@ document.querySelector('#usernameForm').addEventListener('submit', (event) => {
   document.querySelector('#usernameForm').style.display = 'none';
   let username = document.querySelector('#usernameId').value;
   socket.emit('initGame', username);
-  console.log(username);
 });
 
 //---------[FUNCTIONS]---------//

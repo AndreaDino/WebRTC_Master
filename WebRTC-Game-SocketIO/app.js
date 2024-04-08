@@ -74,8 +74,10 @@ io.on('connection', (socket) => {
   //---------[INIT GAME (user press start button)]---------
   socket.on('initGame', (username) => {
     //Sanitation of user input
-    var sanitize = username;
-    s = sanitize.replace(/[^a-zA-Z0-9]/g, '');
+
+    let sanitize = username.replace(/[^a-zA-Z0-9 ]/g, '');
+    console.log(username);
+    console.log(sanitize);
 
     //Create backend player
     backendPlayers[socket.id] = {
