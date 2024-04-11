@@ -76,8 +76,7 @@ io.on('connection', (socket) => {
     //Sanitation of user input
 
     let sanitize = username.replace(/[^a-zA-Z0-9 ]/g, '');
-    console.log(username);
-    console.log(sanitize);
+    sanitize = sanitize.slice(0,15)
 
     //Create backend player
     backendPlayers[socket.id] = {
