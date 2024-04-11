@@ -657,6 +657,52 @@
   // node_modules/@geckos.io/client/lib/index.js
   var lib_default = channel_default;
 
+  // public/js/classes/Player.js
+  var Player = class {
+    constructor({ x, y, radius, color, index, score, username }) {
+      this.x = x;
+      this.y = y;
+      this.radius = radius;
+      this.color = color;
+      this.index = index;
+      this.score = score;
+      this.username = username;
+    }
+    draw(canvas2) {
+      let hsl = `hsl(${this.color} , 100%,50%)`;
+      canvas2.save();
+      canvas2.shadowColor = `hsl(${this.color} , 100%,30%)`;
+      canvas2.shadowBlur = 5;
+      canvas2.beginPath();
+      canvas2.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+      canvas2.fillStyle = hsl;
+      canvas2.fill();
+      canvas2.restore();
+    }
+  };
+
+  // public/js/classes/Wall.js
+  var Wall = class {
+    constructor({ x, y, color, h, w }) {
+      this.x = x;
+      this.y = y;
+      this.color = color;
+      this.h = h;
+      this.w = w;
+    }
+    draw(canvas2) {
+      let hsl = `hsl(${this.color} , 100%,50%)`;
+      canvas2.save();
+      canvas2.shadowColor = `hsl(${this.color} , 100%,30%)`;
+      canvas2.shadowBlur = 5;
+      canvas2.beginPath();
+      canvas2.rect(this.x - 5, this.y - 5, this.h, this.w);
+      canvas2.fillStyle = hsl;
+      canvas2.fill();
+      canvas2.restore();
+    }
+  };
+
   // public/js/index.js
   var socket = lib_default({ port: location.port });
   var canvas = document.querySelector("canvas");
@@ -669,73 +715,17 @@
     lineWidth: 5,
     color: "white"
   };
-  var Player = class {
-    constructor({ x: x2, y: y2, radius, color, index, score, username }) {
-      this.x = x2;
-      this.y = y2;
-      this.radius = radius;
-      this.color = color;
-      this.index = index;
-      this.score = score;
-      this.username = username;
-    }
-    draw() {
-      let hsl = `hsl(${this.color} , 100%,50%)`;
-      c.save();
-      c.shadowColor = `hsl(${this.color} , 100%,30%)`;
-      c.shadowBlur = 5;
-      c.beginPath();
-      c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-      c.fillStyle = hsl;
-      c.fill();
-      c.restore();
-    }
-  };
-  var Wall = class {
-    constructor({ x: x2, y: y2, color, h, w }) {
-      this.x = x2;
-      this.y = y2;
-      this.color = color;
-      this.h = h;
-      this.w = w;
-    }
-    draw() {
-      let hsl = `hsl(${this.color} , 100%,50%)`;
-      c.save();
-      c.shadowColor = `hsl(${this.color} , 100%,30%)`;
-      c.shadowBlur = 5;
-      c.beginPath();
-      c.rect(this.x - 5, this.y - 5, this.h, this.w);
-      c.fillStyle = hsl;
-      c.fill();
-      c.restore();
-    }
-  };
   var devicePixelRation = window.devicePixelRatio || 1;
   canvas.width = 1280 * devicePixelRation;
   canvas.height = 720 * devicePixelRation;
   c.scale(devicePixelRation, devicePixelRation);
-  var x = canvas.width / 2;
-  var y = canvas.height / 2;
   var frontendPlayers = {};
   var frontendWalls = {};
+  var SPEED = 10;
+  var playerInputs = [];
+  var sequenceNumber = 0;
   socket.onConnect(function(error) {
-    console.log("Hello everyone, I'm " + socket.id);
-    socket.on("updateWalls", (backendWalls) => {
-      for (const id in backendWalls) {
-        for (const index in backendWalls[id]) {
-          frontendWalls[id][index] = new Wall({
-            x: backendWalls[id][index].x,
-            y: backendWalls[id][index].y,
-            color: backendWalls[id][index].color,
-            h: backendWalls[id][index].h,
-            w: backendWalls[id][index].w
-          });
-        }
-      }
-    });
-    socket.on("updatePlayers", (backendPlayers) => {
-      console.log(performance.now());
+    socket.on("updatePlayers", ({ backendPlayers, backendWalls }) => {
       for (const id in backendPlayers) {
         const backendPlayer = backendPlayers[id];
         if (!frontendWalls[id]) {
@@ -747,11 +737,10 @@
             y: backendPlayer.y,
             radius: 10,
             color: backendPlayer.color,
-            index: backendPlayer.index,
+            index: 0,
             score: backendPlayer.score,
             username: backendPlayer.username
           });
-          console.log(frontendPlayers[id].username);
           document.querySelector(
             "#playerLabels"
           ).innerHTML += `<div data-id="${id}" data-score="${frontendPlayers[id].score}">${frontendPlayers[id].username}: ${frontendPlayers[id].score} </div>`;
@@ -760,23 +749,15 @@
             frontendPlayers[id].x = backendPlayer.x;
             frontendPlayers[id].y = backendPlayer.y;
             frontendPlayers[id].score = backendPlayer.score;
-            document.querySelector(
-              `div[data-id="${id}"]`
-            ).innerHTML = `${frontendPlayers[id].username}: ${frontendPlayers[id].score}`;
-            document.querySelector(`div[data-id="${id}"]`).setAttribute("data-score", frontendPlayers[id].score);
-            const parentDiv = document.querySelector("#playerLabels");
-            const childDiv = Array.from(parentDiv.querySelectorAll("div"));
-            childDiv.sort((a, b) => {
-              const scoreA = Number(a.getAttribute("data-score"));
-              const scoreB = Number(b.getAttribute("data-score"));
-              return scoreB - scoreA;
-            });
-            childDiv.forEach((div) => {
-              parentDiv.removeChild(div);
-            });
-            childDiv.forEach((div) => {
-              parentDiv.appendChild(div);
-            });
+            for (const index in backendWalls[id]) {
+              frontendWalls[id][index] = new Wall({
+                x: backendWalls[id][index].x,
+                y: backendWalls[id][index].y,
+                color: backendWalls[id][index].color,
+                h: backendWalls[id][index].h,
+                w: backendWalls[id][index].w
+              });
+            }
             const lastBackendInputIndex = playerInputs.findIndex((input) => {
               return backendPlayer.sequenceNumber === input.sequenceNumber;
             });
@@ -785,29 +766,36 @@
             playerInputs.forEach((input) => {
               frontendPlayers[id].x += input.dx;
               frontendPlayers[id].y += input.dy;
+              if (frontendPlayers[id].index === 100)
+                frontendPlayers[socket.id].index = 0;
+              frontendWalls[id][frontendPlayers[id].index] = new Wall({
+                x: frontendPlayers[id].x,
+                y: frontendPlayers[id].y,
+                color: frontendPlayers[id].color,
+                h: 10,
+                w: 10
+              });
+              frontendPlayers[id].index++;
             });
           } else {
             frontendPlayers[id].x = backendPlayer.x;
             frontendPlayers[id].y = backendPlayer.y;
             frontendPlayers[id].score = backendPlayer.score;
-            document.querySelector(
-              `div[data-id="${id}"]`
-            ).innerHTML = `${frontendPlayers[id].username}: ${frontendPlayers[id].score}`;
-            document.querySelector(`div[data-id="${id}"]`).setAttribute("data-score", frontendPlayers[id].score);
-            const parentDiv = document.querySelector("#playerLabels");
-            const childDiv = Array.from(parentDiv.querySelectorAll("div"));
-            childDiv.sort((a, b) => {
-              const scoreA = Number(a.getAttribute("data-score"));
-              const scoreB = Number(b.getAttribute("data-score"));
-              return scoreB - scoreA;
-            });
-            childDiv.forEach((div) => {
-              parentDiv.removeChild(div);
-            });
-            childDiv.forEach((div) => {
-              parentDiv.appendChild(div);
-            });
+            for (const index in backendWalls[id]) {
+              frontendWalls[id][index] = new Wall({
+                x: backendWalls[id][index].x,
+                y: backendWalls[id][index].y,
+                color: backendWalls[id][index].color,
+                h: backendWalls[id][index].h,
+                w: backendWalls[id][index].w
+              });
+            }
           }
+          document.querySelector(
+            `div[data-id="${id}"]`
+          ).innerHTML = `${frontendPlayers[id].username}: ${frontendPlayers[id].score}`;
+          document.querySelector(`div[data-id="${id}"]`).setAttribute("data-score", frontendPlayers[id].score);
+          sortLeaderboard();
         }
       }
       for (const id in frontendPlayers) {
@@ -820,7 +808,6 @@
           delete frontendPlayers[id];
           delete frontendWalls[id];
           if (id === socket.id) {
-            console.log("audio");
             var audio = new Audio("/audio/destroyed.wav");
             audio.volume = 0.4;
             audio.play();
@@ -828,148 +815,156 @@
         }
       }
     });
-    let animationId;
-    function animate() {
-      animationId = requestAnimationFrame(animate);
-      c.fillStyle = "rgba(0, 0, 0, 0.1)";
-      c.fillRect(gameField.x, gameField.y, gameField.width, gameField.height);
-      for (const id in frontendWalls) {
-        for (const index in frontendWalls[id]) {
-          const wall = frontendWalls[id][index];
-          wall.draw();
-        }
+  });
+  var animationId;
+  function animate() {
+    animationId = requestAnimationFrame(animate);
+    c.fillStyle = "rgba(0, 0, 0, 0.1)";
+    c.fillRect(gameField.x, gameField.y, gameField.width, gameField.height);
+    for (const id in frontendWalls) {
+      for (const index in frontendWalls[id]) {
+        const wall = frontendWalls[id][index];
+        wall.draw(c);
       }
-      for (const id in frontendPlayers) {
-        const player = frontendPlayers[id];
-        player.draw();
-      }
-      c.strokeStyle = gameField.color;
-      c.lineWidth = gameField.lineWidth;
-      c.strokeRect(gameField.x, gameField.y, gameField.width, gameField.height);
     }
-    animate();
-    const keys = {
-      w: {
-        pressed: false
-      },
-      a: {
-        pressed: false
-      },
-      s: {
-        pressed: false
-      },
-      d: {
-        pressed: false
-      }
-    };
-    const SPEED = 10;
-    const playerInputs = [];
-    let sequenceNumber = 0;
-    setInterval(() => {
-      if (!frontendPlayers[socket.id])
-        return;
-      if (keys.w.pressed) {
-        sequenceNumber++;
-        playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
-        frontendPlayers[socket.id].y -= SPEED;
-        socket.emit(
-          "keydown",
-          { keycode: "KeyW", sequenceNumber },
-          {
-            reliable: true,
-            interval: 20,
-            runs: 5
-          }
-        );
-      }
-      if (keys.a.pressed) {
-        sequenceNumber++;
-        playerInputs.push({ sequenceNumber, dx: -SPEED, dy: 0 });
-        frontendPlayers[socket.id].x -= SPEED;
-        socket.emit(
-          "keydown",
-          { keycode: "KeyA", sequenceNumber },
-          {
-            reliable: true,
-            interval: 20,
-            runs: 5
-          }
-        );
-      }
-      if (keys.s.pressed) {
-        sequenceNumber++;
-        playerInputs.push({ sequenceNumber, dx: 0, dy: +SPEED });
-        frontendPlayers[socket.id].y += SPEED;
-        socket.emit(
-          "keydown",
-          { keycode: "KeyS", sequenceNumber },
-          {
-            reliable: true,
-            interval: 20,
-            runs: 5
-          }
-        );
-      }
-      if (keys.d.pressed) {
-        sequenceNumber++;
-        playerInputs.push({ sequenceNumber, dx: +SPEED, dy: 0 });
-        frontendPlayers[socket.id].x += SPEED;
-        socket.emit(
-          "keydown",
-          { keycode: "KeyD", sequenceNumber },
-          {
-            reliable: true,
-            interval: 20,
-            runs: 5
-          }
-        );
-      }
-    }, 15);
-    window.addEventListener("keydown", (event) => {
-      if (!frontendPlayers[socket.id])
-        return;
-      switch (event.code) {
-        case "KeyW":
-          keys.w.pressed = true;
-          break;
-        case "KeyA":
-          keys.a.pressed = true;
-          break;
-        case "KeyS":
-          keys.s.pressed = true;
-          break;
-        case "KeyD":
-          keys.d.pressed = true;
-          break;
-      }
-    });
-    window.addEventListener("keyup", (event) => {
-      switch (event.code) {
-        case "KeyW":
-          keys.w.pressed = false;
-          break;
-        case "KeyA":
-          keys.a.pressed = false;
-          break;
-        case "KeyS":
-          keys.s.pressed = false;
-          break;
-        case "KeyD":
-          keys.d.pressed = false;
-          break;
-      }
-    });
-    document.querySelector("#usernameForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      document.querySelector("#usernameForm").style.display = "none";
-      console.log(document.querySelector("#usernameId").value);
-      socket.emit("initGame", document.querySelector("#usernameId").value, {
+    for (const id in frontendPlayers) {
+      const player = frontendPlayers[id];
+      player.draw(c);
+    }
+    c.strokeStyle = gameField.color;
+    c.lineWidth = gameField.lineWidth;
+    c.strokeRect(gameField.x, gameField.y, gameField.width, gameField.height);
+  }
+  animate();
+  var keys = {
+    w: {
+      pressed: false
+    },
+    a: {
+      pressed: false
+    },
+    s: {
+      pressed: false
+    },
+    d: {
+      pressed: false
+    }
+  };
+  window.addEventListener("keydown", (event) => {
+    if (!frontendPlayers[socket.id])
+      return;
+    switch (event.code) {
+      case "KeyW":
+        keys.w.pressed = true;
+        break;
+      case "KeyA":
+        keys.a.pressed = true;
+        break;
+      case "KeyS":
+        keys.s.pressed = true;
+        break;
+      case "KeyD":
+        keys.d.pressed = true;
+        break;
+    }
+  });
+  window.addEventListener("keyup", (event) => {
+    switch (event.code) {
+      case "KeyW":
+        keys.w.pressed = false;
+        break;
+      case "KeyA":
+        keys.a.pressed = false;
+        break;
+      case "KeyS":
+        keys.s.pressed = false;
+        break;
+      case "KeyD":
+        keys.d.pressed = false;
+        break;
+    }
+  });
+  setInterval(() => {
+    if (!frontendPlayers[socket.id])
+      return;
+    if (keys.w.pressed) {
+      sequenceNumber++;
+      playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
+      frontendPlayers[socket.id].y -= SPEED;
+      socket.emit("keydown", { keycode: "KeyW", sequenceNumber }, {
         reliable: true,
         interval: 20,
         runs: 5
       });
+    }
+    if (keys.a.pressed) {
+      sequenceNumber++;
+      playerInputs.push({ sequenceNumber, dx: -SPEED, dy: 0 });
+      frontendPlayers[socket.id].x -= SPEED;
+      socket.emit(
+        "keydown",
+        { keycode: "KeyA", sequenceNumber },
+        {
+          reliable: true,
+          interval: 20,
+          runs: 5
+        }
+      );
+    }
+    if (keys.s.pressed) {
+      sequenceNumber++;
+      playerInputs.push({ sequenceNumber, dx: 0, dy: +SPEED });
+      frontendPlayers[socket.id].y += SPEED;
+      socket.emit(
+        "keydown",
+        { keycode: "KeyS", sequenceNumber },
+        {
+          reliable: true,
+          interval: 20,
+          runs: 5
+        }
+      );
+    }
+    if (keys.d.pressed) {
+      sequenceNumber++;
+      playerInputs.push({ sequenceNumber, dx: +SPEED, dy: 0 });
+      frontendPlayers[socket.id].x += SPEED;
+      socket.emit(
+        "keydown",
+        { keycode: "KeyD", sequenceNumber },
+        {
+          reliable: true,
+          interval: 20,
+          runs: 5
+        }
+      );
+    }
+  }, 15);
+  document.querySelector("#usernameForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    document.querySelector("#usernameForm").style.display = "none";
+    let username = document.querySelector("#usernameId").value;
+    socket.emit("initGame", username, {
+      reliable: true,
+      interval: 20,
+      runs: 5
     });
   });
+  function sortLeaderboard() {
+    const parentDiv = document.querySelector("#playerLabels");
+    const childDiv = Array.from(parentDiv.querySelectorAll("div"));
+    childDiv.sort((a, b) => {
+      const scoreA = Number(a.getAttribute("data-score"));
+      const scoreB = Number(b.getAttribute("data-score"));
+      return scoreB - scoreA;
+    });
+    childDiv.forEach((div) => {
+      parentDiv.removeChild(div);
+    });
+    childDiv.forEach((div) => {
+      parentDiv.appendChild(div);
+    });
+  }
 })();
 /*! Bundled license information:
 

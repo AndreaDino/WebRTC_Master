@@ -1,4 +1,4 @@
-class Player {
+export class Player {
   constructor({ x, y, radius, color, index, score, username }) {
     this.x = x;
     this.y = y;
@@ -9,15 +9,15 @@ class Player {
     this.username = username;
   }
 
-  draw() {
+  draw( canvas ) {
     let hsl = `hsl(${this.color} , 100%,50%)`;
-    c.save();
-    c.shadowColor = `hsl(${this.color} , 100%,30%)`;
-    c.shadowBlur = 5;
-    c.beginPath();
-    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-    c.fillStyle = hsl;
-    c.fill();
-    c.restore();
+    canvas.save();
+    canvas.shadowColor = `hsl(${this.color} , 100%,30%)`;
+    canvas.shadowBlur = 5;
+    canvas.beginPath();
+    canvas.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    canvas.fillStyle = hsl;
+    canvas.fill();
+    canvas.restore();
   }
 }

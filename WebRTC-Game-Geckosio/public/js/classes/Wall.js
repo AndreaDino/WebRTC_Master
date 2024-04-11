@@ -1,4 +1,4 @@
-class Wall {
+export class Wall {
   constructor({ x, y, color, h, w }) {
     this.x = x;
     this.y = y;
@@ -7,15 +7,15 @@ class Wall {
     this.w = w;
   }
 
-  draw() {
+  draw( canvas ) {
     let hsl = `hsl(${this.color} , 100%,50%)`;
-    c.save();
-    c.shadowColor = `hsl(${this.color} , 100%,30%)`;
-    c.shadowBlur = 5;
-    c.beginPath();
-    c.rect(this.x - 5, this.y - 5, this.h, this.w);
-    c.fillStyle = hsl;
-    c.fill();
-    c.restore();
+    canvas.save();
+    canvas.shadowColor = `hsl(${this.color} , 100%,30%)`;
+    canvas.shadowBlur = 5;
+    canvas.beginPath();
+    canvas.rect(this.x - 5, this.y - 5, this.h, this.w);
+    canvas.fillStyle = hsl;
+    canvas.fill();
+    canvas.restore();
   }
 }

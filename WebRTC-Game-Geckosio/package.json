@@ -6,7 +6,7 @@
     "start": "npm-run-all --parallel dev:*",
     "dev:nodejs": "nodemon server.mjs ",
     "dev:esbuild": "esbuild public/js/index.js  --outfile=public/js/bundle.js --bundle --watch ",
-    "build": "esbuild public/js/index.js  --outfile=public/js/bundle.js --bundle "
+    "build": "esbuild public/js/index.js  --outfile=public/js/bundle.js --bundle --external: c"
   },
   "author": "",
   "license": "ISC",

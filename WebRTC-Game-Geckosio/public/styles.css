@@ -12,7 +12,7 @@
 --accent: #e73c86;
  */
 
-body {
+ body {
   font-family: 'Goldman', sans-serif;
   font-weight: 400;
   background-image: url('/img/prism.png');
@@ -22,9 +22,10 @@ body {
 }
 
 canvas {
-  /* width: 1280;
-  height: 720; */
-  width: 70%;
+  max-width: 60%;
+  max-height: 70%;
+  /* height: 70%;
+  max-width: 70%; */
 
   /* background-image: url('/img/dark-honeycomb.png'); */
   top: 50%;
@@ -41,7 +42,7 @@ canvas {
 
 #leaderboard {
   word-wrap: break-word;
-  width: 15%;
+  width: 20%;
   max-height: 80%;
   background-color: #de2173;
   border-radius: 5px;
