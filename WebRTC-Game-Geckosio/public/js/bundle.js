@@ -891,11 +891,15 @@
       sequenceNumber++;
       playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
       frontendPlayers[socket.id].y -= SPEED;
-      socket.emit("keydown", { keycode: "KeyW", sequenceNumber }, {
-        reliable: true,
-        interval: 20,
-        runs: 5
-      });
+      socket.emit(
+        "keydown",
+        { keycode: "KeyW", sequenceNumber },
+        {
+          reliable: true,
+          interval: 20,
+          runs: 5
+        }
+      );
     }
     if (keys.a.pressed) {
       sequenceNumber++;

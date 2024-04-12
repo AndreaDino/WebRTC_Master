@@ -23,7 +23,6 @@ canvas.width = 1280 * devicePixelRation;
 canvas.height = 720 * devicePixelRation;
 c.scale(devicePixelRation, devicePixelRation);
 
-
 //-------------[VARIABLES]-------------//
 const frontendPlayers = {};
 const frontendWalls = {};
@@ -31,130 +30,126 @@ const SPEED = 10; //the SPEED parameter is used only to animate the predicted mo
 const playerInputs = [];
 let sequenceNumber = 0;
 
-
-
 socket.onConnect(function (error) {
+  //-------------[UPDATE PLAYERS]-------------//
+  socket.on('updatePlayers', ({ backendPlayers, backendWalls }) => {
+    for (const id in backendPlayers) {
+      const backendPlayer = backendPlayers[id];
 
-//-------------[UPDATE PLAYERS]-------------//
-socket.on('updatePlayers', ({ backendPlayers, backendWalls }) => {
-  for (const id in backendPlayers) {
-    const backendPlayer = backendPlayers[id];
+      //Create player's wall list
+      if (!frontendWalls[id]) {
+        frontendWalls[id] = [];
+      }
 
-    //Create player's wall list
-    if (!frontendWalls[id]) {
-      frontendWalls[id] = [];
-    }
-
-    if (!frontendPlayers[id]) {
-      //Player doesn't exist -> Create new player
-      frontendPlayers[id] = new Player({
-        x: backendPlayer.x,
-        y: backendPlayer.y,
-        radius: 10,
-        color: backendPlayer.color,
-        index: 0,
-        score: backendPlayer.score,
-        username: backendPlayer.username,
-      });
-
-      //Create leaderboard players
-      document.querySelector(
-        '#playerLabels'
-      ).innerHTML += `<div data-id="${id}" data-score="${frontendPlayers[id].score}">${frontendPlayers[id].username}: ${frontendPlayers[id].score} </div>`;
-    } else {
-      //Existing player
-      if (id === socket.id) {
-        //update connected player position
-        frontendPlayers[id].x = backendPlayer.x;
-        frontendPlayers[id].y = backendPlayer.y;
-        frontendPlayers[id].score = backendPlayer.score;
-
-        //update walls
-        for (const index in backendWalls[id]) {
-          frontendWalls[id][index] = new Wall({
-            x: backendWalls[id][index].x,
-            y: backendWalls[id][index].y,
-            color: backendWalls[id][index].color,
-            h: backendWalls[id][index].h,
-            w: backendWalls[id][index].w,
-          });
-        }
-
-        //player prediction and server reconciliation
-        const lastBackendInputIndex = playerInputs.findIndex((input) => {
-          return backendPlayer.sequenceNumber === input.sequenceNumber;
+      if (!frontendPlayers[id]) {
+        //Player doesn't exist -> Create new player
+        frontendPlayers[id] = new Player({
+          x: backendPlayer.x,
+          y: backendPlayer.y,
+          radius: 10,
+          color: backendPlayer.color,
+          index: 0,
+          score: backendPlayer.score,
+          username: backendPlayer.username,
         });
-        if (lastBackendInputIndex > -1)
-          playerInputs.splice(0, lastBackendInputIndex + 1);
 
-        playerInputs.forEach((input) => {
-          //player prediction
-          frontendPlayers[id].x += input.dx;
-          frontendPlayers[id].y += input.dy;
-
-          //wall prediction
-          if (frontendPlayers[id].index === 100)
-            frontendPlayers[socket.id].index = 0;
-          frontendWalls[id][frontendPlayers[id].index] = new Wall({
-            x: frontendPlayers[id].x,
-            y: frontendPlayers[id].y,
-            color: frontendPlayers[id].color,
-            h: 10,
-            w: 10,
-          });
-          frontendPlayers[id].index++;
-        });
+        //Create leaderboard players
+        document.querySelector(
+          '#playerLabels'
+        ).innerHTML += `<div data-id="${id}" data-score="${frontendPlayers[id].score}">${frontendPlayers[id].username}: ${frontendPlayers[id].score} </div>`;
       } else {
-        //update other players
-        frontendPlayers[id].x = backendPlayer.x;
-        frontendPlayers[id].y = backendPlayer.y;
-        frontendPlayers[id].score = backendPlayer.score;
+        //Existing player
+        if (id === socket.id) {
+          //update connected player position
+          frontendPlayers[id].x = backendPlayer.x;
+          frontendPlayers[id].y = backendPlayer.y;
+          frontendPlayers[id].score = backendPlayer.score;
 
-        //update other walls
-        for (const index in backendWalls[id]) {
-          frontendWalls[id][index] = new Wall({
-            x: backendWalls[id][index].x,
-            y: backendWalls[id][index].y,
-            color: backendWalls[id][index].color,
-            h: backendWalls[id][index].h,
-            w: backendWalls[id][index].w,
+          //update walls
+          for (const index in backendWalls[id]) {
+            frontendWalls[id][index] = new Wall({
+              x: backendWalls[id][index].x,
+              y: backendWalls[id][index].y,
+              color: backendWalls[id][index].color,
+              h: backendWalls[id][index].h,
+              w: backendWalls[id][index].w,
+            });
+          }
+
+          //player prediction and server reconciliation
+          const lastBackendInputIndex = playerInputs.findIndex((input) => {
+            return backendPlayer.sequenceNumber === input.sequenceNumber;
           });
+          if (lastBackendInputIndex > -1)
+            playerInputs.splice(0, lastBackendInputIndex + 1);
+
+          playerInputs.forEach((input) => {
+            //player prediction
+            frontendPlayers[id].x += input.dx;
+            frontendPlayers[id].y += input.dy;
+
+            //wall prediction
+            if (frontendPlayers[id].index === 100)
+              frontendPlayers[socket.id].index = 0;
+            frontendWalls[id][frontendPlayers[id].index] = new Wall({
+              x: frontendPlayers[id].x,
+              y: frontendPlayers[id].y,
+              color: frontendPlayers[id].color,
+              h: 10,
+              w: 10,
+            });
+            frontendPlayers[id].index++;
+          });
+        } else {
+          //update other players
+          frontendPlayers[id].x = backendPlayer.x;
+          frontendPlayers[id].y = backendPlayer.y;
+          frontendPlayers[id].score = backendPlayer.score;
+
+          //update other walls
+          for (const index in backendWalls[id]) {
+            frontendWalls[id][index] = new Wall({
+              x: backendWalls[id][index].x,
+              y: backendWalls[id][index].y,
+              color: backendWalls[id][index].color,
+              h: backendWalls[id][index].h,
+              w: backendWalls[id][index].w,
+            });
+          }
+        }
+        //Update leaderboard
+        document.querySelector(
+          `div[data-id="${id}"]`
+        ).innerHTML = `${frontendPlayers[id].username}: ${frontendPlayers[id].score}`;
+        document
+          .querySelector(`div[data-id="${id}"]`)
+          .setAttribute('data-score', frontendPlayers[id].score);
+        sortLeaderboard();
+      }
+    }
+
+    //-------------[DELETE PLAYERS]-------------//
+    for (const id in frontendPlayers) {
+      if (!backendPlayers[id]) {
+        //delete from leaderboard and display start game
+        const divToDelete = document.querySelector(`div[data-id="${id}"]`);
+        divToDelete.parentNode.removeChild(divToDelete);
+        if (id === socket.id) {
+          document.querySelector('#usernameForm').style.display = 'block';
+        }
+        delete frontendPlayers[id];
+        delete frontendWalls[id];
+
+        //sound when destroyed
+        if (id === socket.id) {
+          var audio = new Audio('/audio/destroyed.wav');
+          audio.volume = 0.4;
+          audio.play();
         }
       }
-      //Update leaderboard
-      document.querySelector(
-        `div[data-id="${id}"]`
-      ).innerHTML = `${frontendPlayers[id].username}: ${frontendPlayers[id].score}`;
-      document
-        .querySelector(`div[data-id="${id}"]`)
-        .setAttribute('data-score', frontendPlayers[id].score);
-      sortLeaderboard();
     }
-  }
-
-  //-------------[DELETE PLAYERS]-------------//
-  for (const id in frontendPlayers) {
-    if (!backendPlayers[id]) {
-      //delete from leaderboard and display start game
-      const divToDelete = document.querySelector(`div[data-id="${id}"]`);
-      divToDelete.parentNode.removeChild(divToDelete);
-      if (id === socket.id) {
-        document.querySelector('#usernameForm').style.display = 'block';
-      }
-      delete frontendPlayers[id];
-      delete frontendWalls[id];
-
-      //sound when destroyed
-      if (id === socket.id) {
-        var audio = new Audio('/audio/destroyed.wav');
-        audio.volume = 0.4;
-        audio.play();
-      }
-    }
-  }
   });
 });
-
 
 //-------------[ANIMATION]-------------//
 let animationId;
@@ -242,44 +237,57 @@ setInterval(() => {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
     frontendPlayers[socket.id].y -= SPEED;
-    socket.emit('keydown', { keycode: 'KeyW', sequenceNumber }, {
-      reliable: true,
-      interval: 20,
-      runs: 5,
-    });
+    socket.emit(
+      'keydown',
+      { keycode: 'KeyW', sequenceNumber },
+      {
+        reliable: true,
+        interval: 20,
+        runs: 5,
+      }
+    );
   }
   if (keys.a.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: -SPEED, dy: 0 });
     frontendPlayers[socket.id].x -= SPEED;
-    socket.emit('keydown', { keycode: 'KeyA', sequenceNumber },
-    {
-      reliable: true,
-      interval: 20,
-      runs: 5,
-    });
+    socket.emit(
+      'keydown',
+      { keycode: 'KeyA', sequenceNumber },
+      {
+        reliable: true,
+        interval: 20,
+        runs: 5,
+      }
+    );
   }
   if (keys.s.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: 0, dy: +SPEED });
     frontendPlayers[socket.id].y += SPEED;
-    socket.emit('keydown', { keycode: 'KeyS', sequenceNumber },
-    {
-      reliable: true,
-      interval: 20,
-      runs: 5,
-    });
+    socket.emit(
+      'keydown',
+      { keycode: 'KeyS', sequenceNumber },
+      {
+        reliable: true,
+        interval: 20,
+        runs: 5,
+      }
+    );
   }
   if (keys.d.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: +SPEED, dy: 0 });
     frontendPlayers[socket.id].x += SPEED;
-    socket.emit('keydown', { keycode: 'KeyD', sequenceNumber },
-    {
-      reliable: true,
-      interval: 20,
-      runs: 5,
-    });
+    socket.emit(
+      'keydown',
+      { keycode: 'KeyD', sequenceNumber },
+      {
+        reliable: true,
+        interval: 20,
+        runs: 5,
+      }
+    );
   }
 }, 15);
 

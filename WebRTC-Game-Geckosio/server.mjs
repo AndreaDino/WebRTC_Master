@@ -1,5 +1,5 @@
 //---------[IMPORT]---------
-import geckos, {iceServers} from '@geckos.io/server';
+import geckos, { iceServers } from '@geckos.io/server';
 import http from 'http';
 import express from 'express';
 
@@ -25,25 +25,32 @@ const SPEED = 10;
 const CANVAS_HEIGHT = 720;
 const CANVAS_WIDTH = 1280;
 
-
-
 //---------[CONNECTION]---------
 io.onConnection((socket) => {
-  io.emit('updatePlayers', { backendPlayers, backendWalls }, {
-    reliable: true,
-    interval: 20,
-    runs: 5,
-  });
+  io.emit(
+    'updatePlayers',
+    { backendPlayers, backendWalls },
+    {
+      reliable: true,
+      interval: 20,
+      runs: 5,
+    }
+  );
 
   //---------[DISCONNECTION]---------
   socket.onDisconnect((reason) => {
     console.log(reason);
     delete backendPlayers[socket.id];
     delete backendWalls[socket.id];
-    io.emit('updatePlayers', { backendPlayers, backendWalls }, {
-      reliable: true,
-      interval: 20,
-      runs: 5,});
+    io.emit(
+      'updatePlayers',
+      { backendPlayers, backendWalls },
+      {
+        reliable: true,
+        interval: 20,
+        runs: 5,
+      }
+    );
   });
 
   //---------[UPDATE POSITION]---------
@@ -80,13 +87,12 @@ io.onConnection((socket) => {
     };
     backendPlayers[socket.id].index++;
   });
-  
+
   //---------[INIT GAME (user press start button)]---------
   socket.on('initGame', (username) => {
-
     //Sanitation of user input
     let sanitize = username.replace(/[^a-zA-Z0-9 ]/g, '');
-    sanitize = sanitize.slice(0,15)
+    sanitize = sanitize.slice(0, 15);
 
     //Create backend player
     backendPlayers[socket.id] = {
@@ -103,16 +109,19 @@ io.onConnection((socket) => {
     //Create player wall list
     backendWalls[socket.id] = [];
   });
- });
+});
 
-    
 //---------[UPDATE BY INTERVAL]---------
 setInterval(() => {
-  io.emit('updatePlayers', { backendPlayers, backendWalls }, {
-    reliable: true,
-    interval: 20,
-    runs: 5,
-  });
+  io.emit(
+    'updatePlayers',
+    { backendPlayers, backendWalls },
+    {
+      reliable: true,
+      interval: 20,
+      runs: 5,
+    }
+  );
 
   //---------[CHECK COLLISIONS]---------
   for (const id in backendPlayers) {
@@ -140,12 +149,9 @@ setInterval(() => {
   }
 }, 15);
 
-
 server.listen(port, () => {
-  console.log(`Example app listening on http://localhost:${port}/`);
+  console.log(`listening on http://localhost:${port}/`);
 });
-
-
 
 //---------[FUNCTIONS]---------
 //Check if the rectangle and circle are colliding
