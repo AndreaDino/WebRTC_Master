@@ -2,7 +2,7 @@ import geckos from '@geckos.io/client';
 import { Player } from './classes/Player.js';
 import { Wall } from './classes/Wall.js';
 
-const socket = geckos({ port: location.port });
+const channel = geckos({ port: location.port });
 
 //-------------[CANVAS]-------------//
 const canvas = document.querySelector('canvas');
@@ -30,9 +30,9 @@ const SPEED = 10; //the SPEED parameter is used only to animate the predicted mo
 const playerInputs = [];
 let sequenceNumber = 0;
 
-socket.onConnect(function (error) {
+channel.onConnect(function (error) {
   //-------------[UPDATE PLAYERS]-------------//
-  socket.on('updatePlayers', ({ backendPlayers, backendWalls }) => {
+  channel.on('updatePlayers', ({ backendPlayers, backendWalls }) => {
     for (const id in backendPlayers) {
       const backendPlayer = backendPlayers[id];
 
@@ -59,7 +59,7 @@ socket.onConnect(function (error) {
         ).innerHTML += `<div data-id="${id}" data-score="${frontendPlayers[id].score}">${frontendPlayers[id].username}: ${frontendPlayers[id].score} </div>`;
       } else {
         //Existing player
-        if (id === socket.id) {
+        if (id === channel.id) {
           //update connected player position
           frontendPlayers[id].x = backendPlayer.x;
           frontendPlayers[id].y = backendPlayer.y;
@@ -90,7 +90,7 @@ socket.onConnect(function (error) {
 
             //wall prediction
             if (frontendPlayers[id].index === 100)
-              frontendPlayers[socket.id].index = 0;
+              frontendPlayers[channel.id].index = 0;
             frontendWalls[id][frontendPlayers[id].index] = new Wall({
               x: frontendPlayers[id].x,
               y: frontendPlayers[id].y,
@@ -134,14 +134,14 @@ socket.onConnect(function (error) {
         //delete from leaderboard and display start game
         const divToDelete = document.querySelector(`div[data-id="${id}"]`);
         divToDelete.parentNode.removeChild(divToDelete);
-        if (id === socket.id) {
+        if (id === channel.id) {
           document.querySelector('#usernameForm').style.display = 'block';
         }
         delete frontendPlayers[id];
         delete frontendWalls[id];
 
         //sound when destroyed
-        if (id === socket.id) {
+        if (id === channel.id) {
           var audio = new Audio('/audio/destroyed.wav');
           audio.volume = 0.4;
           audio.play();
@@ -196,7 +196,7 @@ const keys = {
 };
 
 window.addEventListener('keydown', (event) => {
-  if (!frontendPlayers[socket.id]) return;
+  if (!frontendPlayers[channel.id]) return;
   switch (event.code) {
     case 'KeyW':
       keys.w.pressed = true;
@@ -232,12 +232,12 @@ window.addEventListener('keyup', (event) => {
 
 //input sampling (15ms), each input is given a sequence number, the event is emitted to the server and pushed to the prediction input list
 setInterval(() => {
-  if (!frontendPlayers[socket.id]) return;
+  if (!frontendPlayers[channel.id]) return;
   if (keys.w.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
-    frontendPlayers[socket.id].y -= SPEED;
-    socket.emit(
+    frontendPlayers[channel.id].y -= SPEED;
+    channel.emit(
       'keydown',
       { keycode: 'KeyW', sequenceNumber },
       {
@@ -250,8 +250,8 @@ setInterval(() => {
   if (keys.a.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: -SPEED, dy: 0 });
-    frontendPlayers[socket.id].x -= SPEED;
-    socket.emit(
+    frontendPlayers[channel.id].x -= SPEED;
+    channel.emit(
       'keydown',
       { keycode: 'KeyA', sequenceNumber },
       {
@@ -264,8 +264,8 @@ setInterval(() => {
   if (keys.s.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: 0, dy: +SPEED });
-    frontendPlayers[socket.id].y += SPEED;
-    socket.emit(
+    frontendPlayers[channel.id].y += SPEED;
+    channel.emit(
       'keydown',
       { keycode: 'KeyS', sequenceNumber },
       {
@@ -278,8 +278,8 @@ setInterval(() => {
   if (keys.d.pressed) {
     sequenceNumber++;
     playerInputs.push({ sequenceNumber, dx: +SPEED, dy: 0 });
-    frontendPlayers[socket.id].x += SPEED;
-    socket.emit(
+    frontendPlayers[channel.id].x += SPEED;
+    channel.emit(
       'keydown',
       { keycode: 'KeyD', sequenceNumber },
       {
@@ -296,7 +296,7 @@ document.querySelector('#usernameForm').addEventListener('submit', (event) => {
   event.preventDefault();
   document.querySelector('#usernameForm').style.display = 'none';
   let username = document.querySelector('#usernameId').value;
-  socket.emit('initGame', username, {
+  channel.emit('initGame', username, {
     reliable: true,
     interval: 20,
     runs: 5,

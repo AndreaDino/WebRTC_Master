@@ -26,7 +26,7 @@ const CANVAS_HEIGHT = 720;
 const CANVAS_WIDTH = 1280;
 
 //---------[CONNECTION]---------
-io.onConnection((socket) => {
+io.onConnection((channel) => {
   io.emit(
     'updatePlayers',
     { backendPlayers, backendWalls },
@@ -38,10 +38,10 @@ io.onConnection((socket) => {
   );
 
   //---------[DISCONNECTION]---------
-  socket.onDisconnect((reason) => {
+  channel.onDisconnect((reason) => {
     console.log(reason);
-    delete backendPlayers[socket.id];
-    delete backendWalls[socket.id];
+    delete backendPlayers[channel.id];
+    delete backendWalls[channel.id];
     io.emit(
       'updatePlayers',
       { backendPlayers, backendWalls },
@@ -54,48 +54,48 @@ io.onConnection((socket) => {
   });
 
   //---------[UPDATE POSITION]---------
-  socket.on('keydown', ({ keycode, sequenceNumber }) => {
-    if (!backendPlayers[socket.id]) return -1;
-    backendPlayers[socket.id].sequenceNumber = sequenceNumber;
+  channel.on('keydown', ({ keycode, sequenceNumber }) => {
+    if (!backendPlayers[channel.id]) return -1;
+    backendPlayers[channel.id].sequenceNumber = sequenceNumber;
 
     //Update player position
     switch (keycode) {
       case 'KeyW':
-        backendPlayers[socket.id].y -= SPEED;
+        backendPlayers[channel.id].y -= SPEED;
         break;
       case 'KeyA':
-        backendPlayers[socket.id].x -= SPEED;
+        backendPlayers[channel.id].x -= SPEED;
         break;
       case 'KeyS':
-        backendPlayers[socket.id].y += SPEED;
+        backendPlayers[channel.id].y += SPEED;
         break;
       case 'KeyD':
-        backendPlayers[socket.id].x += SPEED;
+        backendPlayers[channel.id].x += SPEED;
         break;
     }
 
     //Update walls positions
-    if (backendPlayers[socket.id].index === WALL_MAX)
-      backendPlayers[socket.id].index = 0;
+    if (backendPlayers[channel.id].index === WALL_MAX)
+      backendPlayers[channel.id].index = 0;
 
-    backendWalls[socket.id][backendPlayers[socket.id].index] = {
-      x: backendPlayers[socket.id].x,
-      y: backendPlayers[socket.id].y,
-      color: backendPlayers[socket.id].color,
+    backendWalls[channel.id][backendPlayers[channel.id].index] = {
+      x: backendPlayers[channel.id].x,
+      y: backendPlayers[channel.id].y,
+      color: backendPlayers[channel.id].color,
       h: 10,
       w: 10,
     };
-    backendPlayers[socket.id].index++;
+    backendPlayers[channel.id].index++;
   });
 
   //---------[INIT GAME (user press start button)]---------
-  socket.on('initGame', (username) => {
+  channel.on('initGame', (username) => {
     //Sanitation of user input
     let sanitize = username.replace(/[^a-zA-Z0-9 ]/g, '');
     sanitize = sanitize.slice(0, 15);
 
     //Create backend player
-    backendPlayers[socket.id] = {
+    backendPlayers[channel.id] = {
       x: 1024 * Math.random(),
       y: 576 * Math.random(),
       radius: 10,
@@ -107,7 +107,7 @@ io.onConnection((socket) => {
     };
 
     //Create player wall list
-    backendWalls[socket.id] = [];
+    backendWalls[channel.id] = [];
   });
 });
 

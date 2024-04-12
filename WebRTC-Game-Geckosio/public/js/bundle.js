@@ -348,10 +348,10 @@
       this.rtcConfiguration = rtcConfiguration;
       this.bridge = new Bridge();
       this.onDataChannel = (ev) => {
-        const { channel } = ev;
-        if (channel.label !== this.label)
+        const { channel: channel2 } = ev;
+        if (channel2.label !== this.label)
           return;
-        this.dataChannel = channel;
+        this.dataChannel = channel2;
         this.dataChannel.binaryType = "arraybuffer";
         this.dataChannel.onmessage = (ev2) => {
           const { key, data } = ParseMessage(ev2);
@@ -704,7 +704,7 @@
   };
 
   // public/js/index.js
-  var socket = lib_default({ port: location.port });
+  var channel = lib_default({ port: location.port });
   var canvas = document.querySelector("canvas");
   var c = canvas.getContext("2d");
   var gameField = {
@@ -724,8 +724,8 @@
   var SPEED = 10;
   var playerInputs = [];
   var sequenceNumber = 0;
-  socket.onConnect(function(error) {
-    socket.on("updatePlayers", ({ backendPlayers, backendWalls }) => {
+  channel.onConnect(function(error) {
+    channel.on("updatePlayers", ({ backendPlayers, backendWalls }) => {
       for (const id in backendPlayers) {
         const backendPlayer = backendPlayers[id];
         if (!frontendWalls[id]) {
@@ -745,7 +745,7 @@
             "#playerLabels"
           ).innerHTML += `<div data-id="${id}" data-score="${frontendPlayers[id].score}">${frontendPlayers[id].username}: ${frontendPlayers[id].score} </div>`;
         } else {
-          if (id === socket.id) {
+          if (id === channel.id) {
             frontendPlayers[id].x = backendPlayer.x;
             frontendPlayers[id].y = backendPlayer.y;
             frontendPlayers[id].score = backendPlayer.score;
@@ -767,7 +767,7 @@
               frontendPlayers[id].x += input.dx;
               frontendPlayers[id].y += input.dy;
               if (frontendPlayers[id].index === 100)
-                frontendPlayers[socket.id].index = 0;
+                frontendPlayers[channel.id].index = 0;
               frontendWalls[id][frontendPlayers[id].index] = new Wall({
                 x: frontendPlayers[id].x,
                 y: frontendPlayers[id].y,
@@ -802,12 +802,12 @@
         if (!backendPlayers[id]) {
           const divToDelete = document.querySelector(`div[data-id="${id}"]`);
           divToDelete.parentNode.removeChild(divToDelete);
-          if (id === socket.id) {
+          if (id === channel.id) {
             document.querySelector("#usernameForm").style.display = "block";
           }
           delete frontendPlayers[id];
           delete frontendWalls[id];
-          if (id === socket.id) {
+          if (id === channel.id) {
             var audio = new Audio("/audio/destroyed.wav");
             audio.volume = 0.4;
             audio.play();
@@ -851,7 +851,7 @@
     }
   };
   window.addEventListener("keydown", (event) => {
-    if (!frontendPlayers[socket.id])
+    if (!frontendPlayers[channel.id])
       return;
     switch (event.code) {
       case "KeyW":
@@ -885,13 +885,13 @@
     }
   });
   setInterval(() => {
-    if (!frontendPlayers[socket.id])
+    if (!frontendPlayers[channel.id])
       return;
     if (keys.w.pressed) {
       sequenceNumber++;
       playerInputs.push({ sequenceNumber, dx: 0, dy: -SPEED });
-      frontendPlayers[socket.id].y -= SPEED;
-      socket.emit(
+      frontendPlayers[channel.id].y -= SPEED;
+      channel.emit(
         "keydown",
         { keycode: "KeyW", sequenceNumber },
         {
@@ -904,8 +904,8 @@
     if (keys.a.pressed) {
       sequenceNumber++;
       playerInputs.push({ sequenceNumber, dx: -SPEED, dy: 0 });
-      frontendPlayers[socket.id].x -= SPEED;
-      socket.emit(
+      frontendPlayers[channel.id].x -= SPEED;
+      channel.emit(
         "keydown",
         { keycode: "KeyA", sequenceNumber },
         {
@@ -918,8 +918,8 @@
     if (keys.s.pressed) {
       sequenceNumber++;
       playerInputs.push({ sequenceNumber, dx: 0, dy: +SPEED });
-      frontendPlayers[socket.id].y += SPEED;
-      socket.emit(
+      frontendPlayers[channel.id].y += SPEED;
+      channel.emit(
         "keydown",
         { keycode: "KeyS", sequenceNumber },
         {
@@ -932,8 +932,8 @@
     if (keys.d.pressed) {
       sequenceNumber++;
       playerInputs.push({ sequenceNumber, dx: +SPEED, dy: 0 });
-      frontendPlayers[socket.id].x += SPEED;
-      socket.emit(
+      frontendPlayers[channel.id].x += SPEED;
+      channel.emit(
         "keydown",
         { keycode: "KeyD", sequenceNumber },
         {
@@ -948,7 +948,7 @@
     event.preventDefault();
     document.querySelector("#usernameForm").style.display = "none";
     let username = document.querySelector("#usernameId").value;
-    socket.emit("initGame", username, {
+    channel.emit("initGame", username, {
       reliable: true,
       interval: 20,
       runs: 5
